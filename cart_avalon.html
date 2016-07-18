@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>购物车-avalon</title>
+    <link rel="stylesheet" href="static/css/base.css">
+    <link rel="stylesheet" href="static/css/style.css">
+    <style>
+    .cart-content input:checked +label{
+        background: url(static/images/sprite.png) 0px -198px;
+    }
+    </style>
+</head>
+<body>
+    <div class="cart-container main-container mt30" ms-controller="cartCtrl">
+        <h2>全部商品</h2>
+        <div class="cart-content">
+            <div class="cart-title">
+                <div class="selall">
+                    <input type="checkbox" ms-attr-checked="ischeckall">
+                    <label ms-click="allselect()">全选</label>
+                </div>
+                <div class="product">产品</div>
+                <div class="price">单价</div>
+                <div class="number">数量</div>
+                <div class="allprice">金额（元）</div>
+            </div>
+            <div class="cart-list">
+                <ul>
+                    <li class="list-item clearfix" ms-repeat="cartlist">
+                        <div class="cart-tbody">
+                            <div class="pro-choose fl sel-item">
+                                <input type="checkbox" ms-attr-checked="el.check">
+                                <label ms-click="itemselect($index)"></label>
+                            </div>
+                            <div class="pro-img fl"><img ms-src="{{el.imgUrl}}" alt=""></div>
+                            <div class="pro-info fl">
+                                <h5>部分文字描述</h5>
+                                <p>自主研发的智能拐杖是一款面向长者或行动不变者提供最稳固的支服务持。</p>
+                            </div>
+                            <div class="pro-price fl">售价：<strong>{{el.unitPrice}}</strong></div>
+                            <div class="pro-num fl">
+                                <div class="item-amount clearfix">
+                                    <span class="cart-cut fl" ms-click="cut($index)">-</span>
+                                    <span class="cart-num fl">{{el.pronum}}</span>
+                                    <span class="cart-add fl" ms-click="add($index)">+</span>
+                                </div>
+                                <div class="amount-msg">
+                                    <em ms-if="el.limitnum>0">限购<i>{{el.limitnum}}</i>件</em>
+                                </div>
+                            </div>
+                            <div class="pro-allprice fl">{{el.unitPrice*el.pronum}}</div>
+                            <div class="pro-action fl">
+                                <a href="#" class="tosave">移入收藏夹</a>
+                                <a href="#" class="todelete" ms-click="todelete($index)">删除</a>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="total-amount-wrap clearfix">
+                <div class="total-amount fr">
+                    <div class="fl selecteditem">已选商品<strong id="total_num">{{sumnum}}</strong>件</div>
+                    <div class="fl checkitem">合计（不含寄费）:<strong id="total_price">￥{{summoney}}</strong></div>
+                    <div class="fl submit-btn"><a href="#">结算</a></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="static/js/jquery.js"></script>
+<script src="static/js/avalon.js"></script>
+<script>
+    cartCtrl = avalon.define({
+        $id : 'cartCtrl',
+        //购物车列表数据
+        cartlist:[
+            {imgUrl:'static/pic/img-cover01.jpg', txt:'11在线自主研发的智能拐杖是一款面向长者或行动不变者提供最稳固的支服务持。', unitPrice: '100', pronum:'1', limitnum:'5' ,check: true},
+            {imgUrl:'static/pic/img-cover01.jpg', txt:'22在线自主研发的智能拐杖是一款面向长者或行动不变者提供最稳固的支服务持。', unitPrice: '200', pronum:'2', limitnum:'' ,check: true},
+            {imgUrl:'static/pic/img-cover01.jpg', txt:'33在线自主研发的智能拐杖是一款面向长者或行动不变者提供最稳固的支服务持。', unitPrice: '300', pronum:'3', limitnum:'' ,check: true}
+        ],
+        //所有选项个数
+        check_len: 0,
+        //选中选项个数
+        checked_len: 0,
+        //是否全选
+        ischeckall: false,
+        //总件数
+        sumnum: 0,
+        //总价格
+        summoney: 0,
+        //各订单总价数组
+        array: [],
+        //已选中的订单总价数组
+        totalarr: [],
+        //统计购买总数量
+        totalnum: [],
+        //核总价函数
+        ordermoney: function(){
+            if($('li.list-item').length>0){
+                $('li.list-item').each(function(){
+                    var index = $(this).index();
+                    cartCtrl.array[index] = {};
+                    cartCtrl.array[index].num = Number(cartCtrl.cartlist[index].pronum);
+                    cartCtrl.array[index].money= Number(cartCtrl.cartlist[index].unitPrice)*Number(cartCtrl.cartlist[index].pronum);
+                    cartCtrl.totalarr[index] ={};
+                    //选中的订单
+                    if(cartCtrl.cartlist[index].check){
+                        cartCtrl.totalarr[index] ={};
+                        cartCtrl.totalarr[index].num = cartCtrl.array[index].num;
+                        cartCtrl.totalarr[index].money = cartCtrl.array[index].money;
+                    }else{
+                        cartCtrl.totalarr[index].num = 0;
+                        cartCtrl.totalarr[index].money = 0;//没选中的订单的价格为0
+                    }
+                });
+            }
+            //重置价格，重新计算
+            cartCtrl.sumnum=0;
+            cartCtrl.summoney=0;
+            for(var i=0; i<cartCtrl.totalarr.length; i++){
+                cartCtrl.sumnum += cartCtrl.totalarr[i].num;
+                cartCtrl.summoney += cartCtrl.totalarr[i].money;
+            }
+        },
+        itemselect:function(i){
+            cartCtrl.check_len = cartCtrl.cartlist.length;
+            cartCtrl.checked_len = cartCtrl.cartlist.length;
+            cartCtrl.cartlist[i].check = !cartCtrl.cartlist[i].check;
+
+            if(!cartCtrl.cartlist[i].check){
+                cartCtrl.checked_len -=1;
+            }else{
+                cartCtrl.checked_len +=1;
+            }
+            isall();
+            cartCtrl.ordermoney();
+        },
+
+        //点击全选按钮
+        allselect:function(){
+            cartCtrl.ischeckall = !cartCtrl.ischeckall;
+            if(cartCtrl.ischeckall){
+                for(var i=0; i<cartCtrl.cartlist.length; i++){
+                    cartCtrl.cartlist[i].check = true;
+                }
+            }else{
+                for(var i=0; i<cartCtrl.cartlist.length; i++){
+                    cartCtrl.cartlist[i].check = false;
+                }
+            }
+            cartCtrl.ordermoney();
+        },
+        cut: function(i){
+            var _num = cartCtrl.cartlist[i].pronum;
+            if(_num == 1){
+                _num =1;
+            }else{
+                _num--;
+            }
+            cartCtrl.cartlist[i].pronum = _num;
+            cartCtrl.ordermoney();
+        },
+        add: function(i){
+            var _num = cartCtrl.cartlist[i].pronum;
+            var _limtnum = parseFloat(cartCtrl.cartlist[i].limitnum);
+            if(_limtnum>0){
+                if(_num == _limtnum){
+                    _num =_limtnum;
+                }else{
+                    _num++;
+                }
+            }else{
+                _num++
+            }
+            cartCtrl.cartlist[i].pronum = _num;
+            cartCtrl.ordermoney();
+        },
+        todelete: function(i){
+            cartCtrl.cartlist.splice(i,1);
+            cartCtrl.ordermoney();
+        }
+
+    });
+
+    //判断是否全选
+    function isall(){
+        if(cartCtrl.check_len == cartCtrl.checked_len){
+            cartCtrl.ischeckall = true;
+        }else{
+            cartCtrl.ischeckall = false;
+        }
+    }
+
+    avalon.ready(function(){
+        avalon.scan();
+        isall();
+        cartCtrl.ordermoney();
+
+    });
+</script>
+</html>

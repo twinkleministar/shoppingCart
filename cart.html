@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>购物车</title>
+	<link rel="stylesheet" href="static/css/base.css">
+	<link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+	<div class="cart-container main-container mt30">
+		<h2>全部商品</h2>
+		<div class="cart-content">
+			<div class="cart-title">
+				<div class="selall">
+					<input type="checkbox">
+					<label>全选</label>
+				</div>
+				<div class="product">产品</div>
+				<div class="price">单价</div>
+				<div class="number">数量</div>
+				<div class="allprice">金额（元）</div>
+			</div>
+			<div class="cart-list">
+				<ul>
+					<li class="list-item clearfix">
+						<div class="cart-tbody">
+							<div class="pro-choose fl sel-item">
+								<input type="checkbox">
+								<label></label>
+							</div>
+							<div class="pro-img fl"><img src="static/pic/img-cover01.jpg" alt=""></div>
+							<div class="pro-info fl">
+								<h5>部分文字描述</h5>
+								<p>佳音在线自主研发的智能拐杖是一款面向长者或行动不变者提供最稳固的支服务持。</p>
+							</div>
+							<div class="pro-price fl">售价：<strong>13800</strong></div>
+							<div class="pro-num fl">
+								<div class="item-amount clearfix">
+									<span class="cart-cut fl">-</span>
+									<span class="cart-num fl">2</span>
+									<span class="cart-add fl">+</span>
+								</div>
+								<div class="amount-msg">
+									<em>限购<i>5</i>件</em>
+								</div>
+							</div>
+							<div class="pro-allprice fl">13400</div>
+							<div class="pro-action fl">
+								<a href="#" class="tosave">移入收藏夹</a>
+								<a href="#" class="todelete">删除</a>
+							</div>
+						</div>
+					</li>
+					<li class="list-item clearfix">
+						<div class="cart-tbody">
+							<div class="pro-choose fl sel-item">
+								<input type="checkbox">
+								<label></label>
+							</div>
+							<div class="pro-img fl"><img src="static/pic/img-cover01.jpg" alt=""></div>
+							<div class="pro-info fl">
+								<h5>部分文字描述</h5>
+								<p>佳音在线自主研发的智能拐杖是一款面向长者或行动不变者提供最稳固的支服务持。</p>
+							</div>
+							<div class="pro-price fl">售价：<strong>13800</strong></div>
+							<div class="pro-num fl">
+								<div class="item-amount clearfix">
+									<span class="cart-cut fl">-</span>
+									<span class="cart-num fl">1</span>
+									<span class="cart-add fl">+</span>
+								</div>
+								<div class="amount-msg">
+									<em></em>
+								</div>
+							</div>
+							<div class="pro-allprice fl">13400</div>
+							<div class="pro-action fl">
+								<a href="#" class="tosave">移入收藏夹</a>
+								<a href="#" class="todelete">删除</a>
+							</div>
+						</div>
+					</li>
+				</ul>
+			</div>
+			<div class="total-amount-wrap clearfix">
+				<div class="total-amount fr">
+					<div class="fl selecteditem">已选商品<strong id="total_num">1</strong>件</div>
+					<div class="fl checkitem">合计（不含寄费）:<strong id="total_price">￥740.00</strong></div>
+					<div class="fl submit-btn"><a href="#">结算</a></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+<script src="static/js/jquery.js"></script>
+<script>
+	$(function(){
+
+		//点击全选or全不选
+		$('.selall').on('click',function(){
+			if(!$(this).hasClass('seled')){
+				//全选
+				$(this).addClass('seled');
+				$(this).find('input').prop('checked',true);
+				$('.sel-item').addClass('seled');
+				$('sel-item input').prop('checked',true);
+			}else{
+				$(this).removeClass('seled');
+				$(this).find('input').prop('checked',false);
+				$('.sel-item').removeClass('seled');
+				$('.sel-item input').prop('checked',false);
+			}
+			ordermoney()
+		});
+
+		//点击选中或不选中该商品
+		$('.sel-item').on('click',function(){
+			if($(this).hasClass('seled')){
+				//取消选中
+				$(this).removeClass('seled');
+				$(this).find('input').prop('checked',false);
+				allselect();
+			}else{
+				//选中
+				$(this).addClass('seled');
+				$(this).find('input').prop('checked',true);
+				allselect();
+			}
+			ordermoney();
+		});
+
+		//是否全选函数
+		function allselect(){
+			var input_len = $('.sel-item input[type=checkbox]').length;
+			var input_seled_len = $('.sel-item input[type=checkbox]:checked').length;
+
+            if($('.sel-item input[type=checkbox]').length>0){
+    			if(input_len == input_seled_len){
+    				$('.selall').addClass('seled');
+    				$('.selall input').prop('checked',true);
+    			}else{
+    				$('.selall').removeClass('seled');
+    				$('.selall input').prop('checked',false);
+    			}
+            }else{
+                $('.selall').removeClass('seled');
+                $('.selall input').prop('checked',false);
+            }
+		}
+		//减少商品个数
+		$('.cart-cut').on('click',function(){
+			var number = Number($(this).siblings('.cart-num').html());
+			if(number == 1){
+				number = 1;
+			}else{
+				number--;
+			}
+			$(this).siblings('.cart-num').html(number);
+			ordermoney();
+		});
+
+		//增加商品个数
+		$('.cart-add').on('click',function(){
+			var number = Number($(this).siblings('.cart-num').html());
+			var end_number = Number($(this).parents('li').find('.amount-msg i').html());
+			//有限购
+			if(end_number){
+				if(number == end_number){
+					number = end_number;
+				}else{
+					number++;
+				}
+			}else{
+				number++;
+			}
+			$(this).siblings('.cart-num').html(number);
+			ordermoney();
+		});
+
+		//删除该商品并重新核对购物车价格
+		$('.pro-action .todelete').on('click',function(){
+			$(this).parents('li').empty();
+			allselect();
+			ordermoney();
+		});
+
+		//统计购物车价格函数
+		var array = []; //各订单总价数组
+		var totalarr = []; //已选中的订单总价数组
+		var totalnum = []; //统计购买总数量
+		function ordermoney(){
+            if($('li.list-item').length>0){
+    			$('li.list-item').each(function(){
+    				var index = $(this).index();
+    				var number = Number($(this).find('.cart-num').html());
+    				var unit_price = Number($(this).find('.pro-price strong').html());
+    				var all_price = Number($(this).find('.pro-allprice').html());
+    				all_price = number*unit_price;
+    				$(this).find('.pro-allprice').html(all_price);
+    				array[index] = {};
+    				array[index].num = number;
+    				array[index].money= all_price;
+    				totalarr[index] ={};
+    				//选中的订单
+    				if($(this).find('.sel-item').hasClass('seled')){
+    					totalarr[index] ={};
+    					totalarr[index].num = array[index].num
+    					totalarr[index].money = array[index].money;
+    					// totalarr[index] = array[index];
+    				}else{
+    					totalarr[index].num = 0;
+    					totalarr[index].money = 0;//没选中的订单的价格为0
+    				}
+    			});
+            }
+		 	var summoney = 0;  //总价数
+		 	var sumnum = 0; //总个数
+			for(var i=0; i<totalarr.length; i++){
+				sumnum += totalarr[i].num
+				summoney += totalarr[i].money;
+			}
+			$('#total_num').html(sumnum);
+			$('#total_price').html(summoney);
+		}
+		ordermoney();
+	});
+</script>
+</html>
